@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  role      String    // "FLEET_MANAGER", "DISPATCHER", "SAFETY_OFFICER", "FINANCIAL_ANALYST"
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Vehicle {
+  id              String    @id @default(uuid())
+  regNumber       String    @unique
+  model           String
+  type            String    // "Truck", "Van", etc.
+  capacity        Float
+  odometer        Float
+  acquisitionCost Float
+  status          String    // "AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  trips           Trip[]
+  maintenanceLogs MaintenanceLog[]
+  fuelLogs        FuelLog[]
+  expenses        Expense[]
+
+  @@index([status])
+}
+
+model Driver {
+  id            String    @id @default(uuid())
+  name          String
+  licenseNumber String    @unique
+  category      String
+  contactNumber String
+  expiryDate    DateTime
+  safetyScore   Float
+  status        String    // "AVAILABLE", "ON_TRIP", "OFF_DUTY", "SUSPENDED"
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  trips         Trip[]
+
+  @@index([status])
+}
+
+model Trip {
+  id          String    @id @default(uuid())
+  source      String
+  destination String
+  vehicleId   String
+  vehicle     Vehicle   @relation(fields: [vehicleId], references: [id])
+  driverId    String
+  driver      Driver    @relation(fields: [driverId], references: [id])
+  cargoWeight Float
+  distance    Float
+  revenue     Float     @default(0.0)
+  status      String    // "DRAFT", "DISPATCHED", "COMPLETED", "CANCELLED"
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([status])
+}
+
+model MaintenanceLog {
+  id        String    @id @default(uuid())
+  vehicleId String
+  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id])
+  issue     String
+  cost      Float
+  status    String    // "ACTIVE", "CLOSED"
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model FuelLog {
+  id        String    @id @default(uuid())
+  vehicleId String
+  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id])
+  liters    Float
+  cost      Float
+  loggedAt  DateTime  @default(now())
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([vehicleId])
+}
+
+model Expense {
+  id          String    @id @default(uuid())
+  vehicleId   String
+  vehicle     Vehicle   @relation(fields: [vehicleId], references: [id])
+  cost        Float
+  description String
+  type        String    // "TOLL", "PARKING", "OTHER"
+  date        DateTime  @default(now())
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([vehicleId])
+}
