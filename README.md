@@ -1,4 +1,7 @@
-# React + Vite
+# odoo-26-diligent_tots
+For odoo 2026 hackethon
+
+## React + Vite (Frontend)
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
