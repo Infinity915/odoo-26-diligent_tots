@@ -26,6 +26,7 @@ model Vehicle {
   capacity        Float
   odometer        Float
   acquisitionCost Float
+  imageUrl        String?
   status          String    // "AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"
   
   createdAt       DateTime  @default(now())

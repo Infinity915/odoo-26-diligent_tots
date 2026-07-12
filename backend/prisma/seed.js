@@ -9,11 +9,20 @@ async function main() {
   const passwordHash = await bcrypt.hash('password123', 10);
   
   const roles = [
-    { email: 'admin@transitops.com', role: 'FLEET_MANAGER' },
     { email: 'dispatcher@transitops.com', role: 'DISPATCHER' },
     { email: 'safety@transitops.com', role: 'SAFETY_OFFICER' },
     { email: 'finance@transitops.com', role: 'FINANCIAL_ANALYST' }
   ];
+
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'fleet@transitops.com' },
+    update: {},
+    create: {
+      email: 'fleet@transitops.com',
+      password: passwordHash,
+      role: 'FLEET_MANAGER'
+    }
+  });
 
   for (const r of roles) {
     await prisma.user.upsert({

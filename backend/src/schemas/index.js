@@ -12,6 +12,7 @@ const vehicleSchema = z.object({
   capacity: z.number().positive(),
   odometer: z.number().nonnegative(),
   acquisitionCost: z.number().positive(),
+  imageUrl: z.string().trim().optional(),
   status: z.enum(['AVAILABLE', 'ON_TRIP', 'IN_SHOP', 'RETIRED']),
 });
 

@@ -125,5 +125,41 @@ const getVehicleAnalytics = async (req, res, next) => {
     next(error);
   }
 };
+const getMaintenanceMetrics = async (req, res, next) => {
+  try {
+    const [totalVehicles, vehiclesInShop, pendingAlerts] = await prisma.$transaction([
+      prisma.vehicle.count({ where: { deletedAt: null, status: { not: 'RETIRED' } } }),
+      prisma.vehicle.count({ where: { deletedAt: null, status: 'IN_SHOP' } }),
+      prisma.maintenanceLog.count({ where: { deletedAt: null, status: 'ACTIVE' } })
+    ]);
 
-module.exports = { getDashboardKPIs, getVehicleAnalytics };
+    const fleetHealthScore = totalVehicles === 0
+      ? 100
+      : Math.round(((totalVehicles - vehiclesInShop) / totalVehicles) * 100);
+
+    res.json({
+      success: true,
+      data: { fleetHealthScore, pendingAlerts }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getRecentTrips = async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 5;
+    const trips = await prisma.trip.findMany({
+      where: { deletedAt: null },
+      include: { vehicle: true, driver: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit
+    });
+
+    res.json({ success: true, data: trips });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getDashboardKPIs, getVehicleAnalytics, getMaintenanceMetrics, getRecentTrips };
